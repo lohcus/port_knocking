@@ -63,10 +63,9 @@ else
 		for i in $(seq $inicio 1 $final)
 		do
 			#EXECUTA A FUNCAO SEQUENCIA PARA CADA IP E JOGA PARA BACKGROUND, LIBERANDO PARA O PROXIMO IP
-			sequencia &
+			sequencia
 			let cont=$cont+1
 		done 2> /dev/null
-		wait
 		divisao
 		#TESTA SE FOI CRIADO O ARQUIVO hosts.txt (EH CRIADO APENAS SE ENCONTRAR ALGUM IP COMPROMETIDO PELO MALWARE)
 		if [ -a hosts.txt ]
