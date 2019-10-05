@@ -78,9 +78,13 @@ else
 			for i in $(cat hosts.txt)
 			do
 				printf "\033[32;1m[+] EXTRAINDO PAGINA DO IP \033[33m$rede.$i...\n\n\033[m"
-				wget $rede.$i:1337 &> /dev/null
-				cat index.html
-				rm index.html
+				#OPCAO 1
+				#wget $rede.$i:1337 &> /dev/null
+				#cat index.html
+				#rm index.html
+
+				#OPCAO 2
+				printf "GET / HTTP/1.0\r\n\r\n" | nc $rede.$i 1337
 				divisao
 			done
 		else
