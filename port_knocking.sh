@@ -14,17 +14,31 @@ divisao () {
 	echo
 }
 
+#FUNCAO TESTE DE HOST UP
+testa () {
+	if hping3 -S -p 13 -c 1 $rede.$i &> /dev/null
+	then
+		echo $i >> lista_hosts.txt
+	fi
+}
+
 #FUNCAO DE TENTATIVA DE ATIVACAO DO MALWARE
 sequencia () {
-	hping3 -S -p 13 -c 1 $rede.$i &> /dev/null
-	hping3 -S -p 37 -c 1 $rede.$i &> /dev/null
-	hping3 -S -p 30000 -c 1 $rede.$i &> /dev/null
-	hping3 -S -p 3000 -c 1 $rede.$i &> /dev/null
+	for port in {13,37,30000,3000,1337};
+        do
+		if hping3 -S -p $port -c 1 $rede.$i &> /dev/null
+		then
+			continue
+		else
+			return
+		fi
+	done
+
 	if hping3 -S -p 1337 -c 1 $rede.$i 2> /dev/null | grep flags=SA > /dev/null
 	then
 		echo $i >> hosts.txt
-		#else
-		#printf "\033[31;1mERRO!!! $rede.$i!\n\033[m"
+	else
+			printf "\033[31;1m[-] \033[37;1mHOST $rede.$i NÃO CONTÉM O MALWARE!\n\033[m"
 	fi
 }
 
@@ -37,6 +51,7 @@ tput cup 1 $centro_coluna #POSICIONAR O CURSOR
 printf "\033[34;1mSCRIPT PORT-KNOCKING\n\033[m"
 divisao
 
+rm lista_hosts.txt &> /dev/null
 rm hosts.txt &> /dev/null
 
 if [ -z $2 ] #TESTA SE NAO FORAM DIGITADOS DOI PARAMETROS
@@ -62,34 +77,47 @@ else
 		cont=0
 		for i in $(seq $inicio 1 $final)
 		do
-			#EXECUTA A FUNCAO SEQUENCIA PARA CADA IP E JOGA PARA BACKGROUND, LIBERANDO PARA O PROXIMO IP
-			sequencia &
+			testa &
 			let cont=$cont+1
-		done 2> /dev/null
+		done # 2> /dev/null
 		wait
-		divisao
-		#TESTA SE FOI CRIADO O ARQUIVO hosts.txt (EH CRIADO APENAS SE ENCONTRAR ALGUM IP COMPROMETIDO PELO MALWARE)
-		if [ -a hosts.txt ]
-		then
-			encontrados=$(cat hosts.txt | wc -l)
-			printf "\033[37;1m[+] VERIFICADO \033[34;1m$cont \033[37;1mHOSTS! MALWARE ENCONTRADO EM \033[34;1m$encontrados \033[37;1mHOSTS!!!\n\033[m"
-			divisao
-			#LACO PARA EXTRAIR O index.html DO IP COMPROMETIDO
-			for i in $(cat hosts.txt)
-			do
-				printf "\033[32;1m[+] EXTRAINDO PAGINA DO IP \033[33m$rede.$i...\n\n\033[m"
-				#OPCAO 1
-				#wget $rede.$i:1337 &> /dev/null
-				#cat index.html
-				#rm index.html
 
-				#OPCAO 2
-				printf "GET / HTTP/1.0\r\n\r\n" | nc $rede.$i 1337
-				divisao
-			done
-		else
+		if [ ! -f lista_hosts.txt ]
+		then
 			printf "\033[37;1m[-] VERIFICADO \033[34;1m$cont \033[37;1mHOSTS! NENHUM HOST COMPROMETIDO!\n\033[m"
+			exit 0
+		else
+			for i in $(cat lista_hosts.txt)
+			do
+				#EXECUTA A FUNCAO SEQUENCIA PARA CADA IP E JOGA PARA BACKGROUND, LIBERANDO PARA O PROXIMO IP
+				sequencia &
+			done
+			wait
+
 			divisao
+			#TESTA SE FOI CRIADO O ARQUIVO hosts.txt (EH CRIADO APENAS SE ENCONTRAR ALGUM IP COMPROMETIDO PELO MALWARE)
+			if [ -a hosts.txt ]
+			then
+				encontrados=$(cat hosts.txt | wc -l)
+				printf "\033[37;1m[+] VERIFICADO \033[34;1m$cont \033[37;1mHOSTS! MALWARE ENCONTRADO EM \033[34;1m$encontrados \033[37;1mHOSTS!!!\n\033[m"
+				divisao
+				#LACO PARA EXTRAIR O index.html DO IP COMPROMETIDO
+				for i in $(cat hosts.txt)
+				do
+					printf "\033[32;1m[+] EXTRAINDO PAGINA DO IP \033[33m$rede.$i...\n\n\033[m"
+					#OPCAO 1
+					#wget $rede.$i:1337 &> /dev/null
+					#cat index.html
+					#rm index.html
+
+					#OPCAO 2
+					printf "GET / HTTP/1.0\r\n\r\n" | nc $rede.$i 1337
+					divisao
+				done
+			else
+				printf "\033[37;1m[-] VERIFICADO \033[34;1m$cont \033[37;1mHOSTS! NENHUM HOST COMPROMETIDO!\n\033[m"
+				divisao
+			fi
 		fi
 	fi
 fi
