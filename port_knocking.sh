@@ -2,6 +2,18 @@
 #Criado por Daniel Domingues
 #https://github.com/lohcus
 
+#FUNCAO PARA TESTAR SE OS IPS SAO VALIDOS
+testa () {
+re='^(0*(1?[0-9]{1,2}|2([0-4][0-9]|5[0-5]))\.){3}'
+re+='0*(1?[0-9]{1,2}|2([‌​0-4][0-9]|5[0-5]))$'
+if [[ ! $1 =~ $re ]] || [[ ! $2 =~ $re ]]
+then
+  return 0
+else
+  return 1
+fi
+}
+
 #FUNCAO PARA IMPRIMIR AS DIVISORIAS
 divisao () {
 	#RECALCULA A LARGURA E ALTURA DA JANELA
@@ -45,6 +57,13 @@ if [ -z $2 ] #TESTA SE NAO FORAM DIGITADOS DOI PARAMETROS
 then
 	printf "\033[31;1m[-] \033[37;1mSINTAXE DE USO: \033[33;1m$0 \033[32m<IP INICIAL> <IP FINAL>\n\n\033[m"
 else
+	testa $1 $2	
+	if [[ $(echo $?) == 0 ]] 
+	then
+		printf "\033[31;1m[-] \033[37;1mENDEREÇO DIGITADO INVÁLIDO!\n\n\033[m"
+		exit 1
+	fi
+	
 	inicio=$(echo $1 | cut -d "." -f 4)
 	final=$(echo $2 | cut -d "." -f 4)
 	rede=$(echo $1 | cut -d "." -f 1-3)
