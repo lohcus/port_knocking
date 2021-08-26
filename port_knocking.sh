@@ -86,13 +86,14 @@ else
 		do
 			#EXECUTA A FUNCAO SEQUENCIA PARA CADA IP E JOGA PARA BACKGROUND, LIBERANDO PARA O PROXIMO IP
 			sequencia &
-			let cont=$cont+1
+			#let cont=$cont+1
+			cont=$(($cont+1))
 		done
 		wait
 		echo
 		divisao
 		#TESTA SE FOI CRIADO O ARQUIVO hosts.txt (EH CRIADO APENAS SE ENCONTRAR ALGUM IP COMPROMETIDO PELO MALWARE)
-		if [ -a hosts.txt ]
+		if [ -f hosts.txt ]
 		then
 			encontrados=$(cat hosts.txt | wc -l)
 			printf "\033[32;1m[+]\033[37;1m VERIFICADO \033[34;1m$cont \033[37;1mHOSTS! MALWARE ENCONTRADO EM \033[34;1m$encontrados \033[37;1mHOSTS!!!\n\033[m"
